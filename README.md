@@ -1,28 +1,5 @@
-# Finess_Node
-在机器人上位机的视角里，机器人本体作为一个package进行封装维护，该package描述了操作机器人需要的所有信息，包括
-* 机器人构型描述
-* 机器人通信接口
-
-本地部署
-```shell
-mkdir <your_ws>
-cd <your_ws>
-git clone https://gitee.com/huigg-practice/Fines_Node.git
-colcon build --symlink-install
-```
-## Fines_Decription
-
-```shell
-source install/setup.bash
-
-# 可视化 urdf
-ros2 launch fines_description display_urdf.launch.py
-
-# 根据 urdf 发送 robotstate
-ros2 launch fines_description publish_urdf.launch.py
-```
-
-## Fines_Serial
+## 修改了Fines_Serial，当前收发逻辑为椅夫轮椅通信协议
+还需配置：端口地址、485通信地址、速度映射关系
 
 ```shell
 source install/setup.bash
