@@ -35,7 +35,8 @@ add_library(${PROJECT_NAME}_LIB
 
 add_executable(${PROJECT_NAME}
   src/interface.cpp
-        src/serial_station.cpp
+  src/serial_station.cpp
+  src/data_convert.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} 

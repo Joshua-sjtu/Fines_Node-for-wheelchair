@@ -4,18 +4,9 @@
 #include "serial_station.hpp"
 #include "msg_types.hpp"
 #include "utils/crc.hpp"
-// #include "utils/data_convert.hpp"
-std::string bytes_to_hex(const std::vector<uint8_t>& bytes);
-std::string bytes_to_hex(const std::vector<uint8_t>& bytes) {
-    if (bytes.empty()) return "[empty]";
-    std::stringstream ss;
-    ss << std::hex << std::setfill('0');
-    for (size_t i = 0; i < bytes.size(); ++i) {
-        ss << std::setw(2) << static_cast<unsigned>(bytes[i]);
-        if (i < bytes.size() - 1) ss << " ";
-    }
-    return ss.str();
-}
+#include "utils/data_convert.hpp"
+
+
 // 带有帧标识符、长度和 CRC 的编码函数
 void encode(std::vector<uint8_t> &data)
 {
@@ -116,6 +107,7 @@ int main(int argc, char *argv[])
             velocity = static_cast<float>(msg->linear.x);
             omega = static_cast<float>(msg->angular.z);
         });
+
 
     rclcpp::spin(serial_station);
 

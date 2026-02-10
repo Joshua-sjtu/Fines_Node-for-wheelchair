@@ -76,7 +76,6 @@ void SerialStation::rxCallback()
                 std::vector<uint8_t> data_tx;
                 loadAndTransmit(data_tx);
             }
-            
         }
     }
 }
