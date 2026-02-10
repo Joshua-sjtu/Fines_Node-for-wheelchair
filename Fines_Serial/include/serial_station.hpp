@@ -4,10 +4,8 @@
 #include <queue>
 #include <chrono>
 #include <rclcpp/rclcpp.hpp>
-
 #include "serial/serial.h"
 #include "msg_types.hpp"
-
 
 
 typedef struct

@@ -66,16 +66,17 @@ bool decode(std::vector<uint8_t>& data_rx)
 float velocity = 0.0f;
 float omega = 0.0f;
 
+
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
 
-    /***************************** 参数处理 ********************************/
+    //参数处理 
     std::string serial_port = "/dev/ttyUSB0";
     uint32_t baudrate = 9600;
     int rx_handle_period = 1; // ms
 
-    /***************************** 串口配置 ********************************/
+    //串口配置
     SerialConfig_t config = {
         serial_port,     // serial_port
         baudrate,        // baudrate
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
     serial_station->bindDecodeFunc(decode);
 
 
-    /***************************** 速度指令 ********************************/
+    //速度指令 
     auto cmd_vel_sub = serial_station->create_subscription<geometry_msgs::msg::Twist>(
         "/cmd_vel",
         10,
@@ -115,3 +116,87 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+//测试代码
+/*
+int main(int argc, char** argv)
+{
+    rclcpp::init(argc, argv);
+    //参数处理 
+    std::string serial_port = "/dev/ttyUSB0";
+    uint32_t baudrate = 9600;
+    int rx_handle_period = 1; // ms
+
+    //串口配置
+    SerialConfig_t config = {
+        serial_port,     // serial_port
+        baudrate,        // baudrate
+        serial::Timeout( // 如果只有最长超时，每次read都会超时
+            0,           // inter_byte_timeout_
+            0,           // read_timeout_constant_
+            0,           // read_timeout_multiplier_
+            0,           // write_timeout_constant_
+            0            // write_timeout_multiplier_
+            ),
+        serial::eightbits,        // byte_size
+        serial::parity_none,      // parity
+        serial::stopbits_one,     // stopbits
+        serial::flowcontrol_none, // flowcontrol
+        rx_handle_period,         // rx_handle_period, unit: ms
+    };
+    auto node = std::make_shared<SerialStation>(config);
+    // 创建节点实例（用于调用成员函数和日志）
+    node->bindEncodeFunc(encode);
+    node->bindDecodeFunc(decode);
+    std::cout << "\n=== 速度 & 角速度 测试模式 ===\n";
+    std::cout << "输入格式：速度(m/s) 角速度(rad/s)   示例：0.5 -0.3\n";
+    std::cout << "输入 q 或 quit 退出\n\n";
+
+    while (true) {
+        std::cout << "> ";
+
+        std::string line;
+        std::getline(std::cin, line);
+
+        // 去除前后空白
+        line.erase(0, line.find_first_not_of(" \t"));
+        line.erase(line.find_last_not_of(" \t") + 1);
+
+        if (line.empty()) continue;
+
+        // 退出判断
+        if (line == "q" || line == "quit" || line == "exit") {
+            std::cout << "退出测试模式\n";
+            break;
+        }
+
+        // 解析两个浮点数
+        std::istringstream iss(line);
+        float velocity_ = 0.0f;
+        float omega_ = 0.0f;
+
+        if (!(iss >> velocity_ >> omega_)) {
+            std::cout << "输入格式错误，请输入两个数字（速度 角速度）\n";
+            continue;
+        }
+
+        // 设置到节点成员变量（假设类里有 public 或你能访问的 velocity_ 和 omega_）
+        velocity = velocity_;
+        omega    = omega_;
+
+        // 准备一个空的 vector，让 loadAndTransmit 填充
+        std::vector<uint8_t> data;
+
+        // 调用核心函数
+        node->loadAndTransmit(data);
+
+        // 打印结果
+        std::cout << "\n输入: 速度 = " << velocity << " m/s, 角速度 = " << omega << " rad/s\n";
+        std::cout << "输出字节 (" << data.size() << " bytes): " 
+                  << bytes_to_hex(data) << "\n\n";
+    }
+
+    rclcpp::shutdown();
+    return 0;
+}
+*/
