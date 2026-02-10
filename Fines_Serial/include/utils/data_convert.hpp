@@ -12,6 +12,12 @@
 #include <vector>
 #include <algorithm>
 
+extern float velocity;
+extern float omega;
+void convert_velocity(std::vector<uint8_t> &bytes, float value);
+void convert_omega(std::vector<uint8_t> &bytes, float value);
+
+
 void convert_velocity(std::vector<uint8_t> &bytes, float value)
 {
     // 1. 限幅，防止越界
@@ -63,5 +69,7 @@ void convert_omega(std::vector<uint8_t> &bytes, float value)
     bytes.push_back(low);
     bytes.push_back(high);
 }
+
+
 
 #endif // FINES_SERIAL_DATA_CONVERT_HPP

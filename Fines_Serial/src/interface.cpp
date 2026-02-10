@@ -4,8 +4,18 @@
 #include "serial_station.hpp"
 #include "msg_types.hpp"
 #include "utils/crc.hpp"
-#include "utils/data_convert.hpp"
-
+// #include "utils/data_convert.hpp"
+std::string bytes_to_hex(const std::vector<uint8_t>& bytes);
+std::string bytes_to_hex(const std::vector<uint8_t>& bytes) {
+    if (bytes.empty()) return "[empty]";
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (size_t i = 0; i < bytes.size(); ++i) {
+        ss << std::setw(2) << static_cast<unsigned>(bytes[i]);
+        if (i < bytes.size() - 1) ss << " ";
+    }
+    return ss.str();
+}
 // 带有帧标识符、长度和 CRC 的编码函数
 void encode(std::vector<uint8_t> &data)
 {
@@ -35,26 +45,29 @@ void encode(std::vector<uint8_t> &data)
     data.push_back(TAIL3);
     data.push_back(TAIL4);
     uint8_t crcH, crcL;
-    GetCRC16(data, 15, &crcH, &crcL);
+    GetCRC16(data.data(), 15, &crcH, &crcL);
     data.push_back(crcH);
     data.push_back(crcL);
 }
-
-// 解码函数
-void decode(std::vector<uint8_t> data)
+// 解码函数, 检查地址是否匹配
+bool decode(std::vector<uint8_t>& data_rx)
 {
     uint8_t pc_addr = 0xB7; // 你的 PC 的 485 地址
-
-    if (data.size() > 3 && data[3] == pc_addr)
+    std::string hex_str = bytes_to_hex(data_rx);
+    if (data_rx.size() > 3 && data_rx[3] == pc_addr)
     {
         RCLCPP_INFO(rclcpp::get_logger("SerialStation"),
-                    "Received: [%s]", data_str.c_str());
-        loadAndTransmit(data);
+                "Received valid frame (addr 0x%02X): %s",
+                pc_addr, hex_str.c_str());
+        return true;
+
     }
     else
     {
         RCLCPP_WARN(rclcpp::get_logger("SerialStation"),
-                    "Address Mismatch: [%s]", data_str.c_str());
+                    "Address Mismatch. Received addr: 0x%02X, expected: 0x%02X, data: %s",
+                    data_rx[3], pc_addr, hex_str.c_str());
+        return false;
     }
 }
 
@@ -92,6 +105,7 @@ int main(int argc, char *argv[])
 
     serial_station->bindEncodeFunc(encode);
     serial_station->bindDecodeFunc(decode);
+
 
     /***************************** 速度指令 ********************************/
     auto cmd_vel_sub = serial_station->create_subscription<geometry_msgs::msg::Twist>(

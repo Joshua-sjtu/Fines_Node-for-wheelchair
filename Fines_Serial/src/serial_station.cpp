@@ -1,5 +1,20 @@
 #include "serial_station.hpp"
 #include <fmt/core.h>
+#include "utils/data_convert.hpp"
+
+void SerialStation::loadAndTransmit(std::vector<uint8_t> &data)
+{
+
+    convert_velocity(data, velocity);
+    convert_omega(data, omega);
+
+    if (encode_func_)
+    {
+        encode_func_(data);
+        serial_.write(data);
+    }
+}
+
 
 SerialStation::SerialStation(SerialConfig_t &config) : Node("serial_station")
 {
@@ -43,18 +58,7 @@ SerialStation::~SerialStation()
     serial_.close();
 }
 
-void SerialStation::loadAndTransmit(std::vector<uint8_t> &data)
-{
-    std::vector<uint8_t> data;
-    convert_velocity(data, velocity);
-    convert_omega(data, omega);
 
-    if (encode_func_)
-    {
-        encode_func_(data);
-        serial_.write(data);
-    }
-}
 
 
 void SerialStation::rxCallback()
@@ -65,8 +69,14 @@ void SerialStation::rxCallback()
     {
         if (decode_func_)
         { // 复制一份缓冲区数据
-            std::vector<uint8_t> data(rx_buffer_.begin(), rx_buffer_.begin() + bytes_read);
-            decode_func_(std::move(data));
+            std::vector<uint8_t> data_rx(rx_buffer_.begin(), rx_buffer_.begin() + bytes_read);
+            bool flag=decode_func_(data_rx);
+            if(flag)
+            {
+                std::vector<uint8_t> data_tx;
+                loadAndTransmit(data_tx);
+            }
+            
         }
     }
 }

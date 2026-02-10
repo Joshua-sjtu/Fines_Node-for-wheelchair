@@ -8,6 +8,8 @@
 #include "serial/serial.h"
 #include "msg_types.hpp"
 
+
+
 typedef struct
 {
     const std::string port; // e.g. "/dev/ttyUSB0"
@@ -30,11 +32,13 @@ public:
         encode_func_ = encode_func;
     }
 
-    void bindDecodeFunc(std::function<void(std::vector<uint8_t>)> && decode_func) {
+    void bindDecodeFunc(std::function<bool(std::vector<uint8_t>&)> && decode_func) {
         decode_func_ = decode_func;
     }
-
     void loadAndTransmit(std::vector<uint8_t> &data);
+    void decode(std::vector<uint8_t>& data_rx);
+
+
 
 private:
 
@@ -49,7 +53,7 @@ private:
     std::vector<uint8_t> rx_buffer_; // 串口接收缓冲区，即取即刷
 
     std::function<void(std::vector<uint8_t>&)> encode_func_ = nullptr;
-    std::function<void(std::vector<uint8_t>)> decode_func_ = nullptr;
+    std::function<bool(std::vector<uint8_t>&)> decode_func_ = nullptr;
 
 };
 
